@@ -1,0 +1,150 @@
+[gd_scene load_steps=2 format=3 uid="uid://cflw6qch1ucsf"]
+
+[ext_resource type="Script" path="res://main.gd" id="1_0h62k"]
+
+[node name="Control" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_0h62k")
+
+[node name="Fondo" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="Panel" parent="Fondo"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Contenedores" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TextoScroll" type="HBoxContainer" parent="Contenedores"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Scroller" type="ScrollContainer" parent="Contenedores/TextoScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="Contenedores/TextoScroll/Scroller"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="ColorRect" type="ColorRect" parent="Contenedores/TextoScroll/Scroller/MarginContainer"]
+layout_mode = 2
+color = Color(0.203922, 0.2, 0.27451, 1)
+
+[node name="scrollLabel" type="Label" parent="Contenedores/TextoScroll/Scroller/MarginContainer"]
+layout_mode = 2
+size_flags_vertical = 1
+text = "aaaa"
+
+[node name="Botones" type="VBoxContainer" parent="Contenedores"]
+layout_mode = 2
+size_flags_horizontal = 6
+size_flags_stretch_ratio = 0.5
+
+[node name="Label" type="Label" parent="Contenedores/Botones"]
+layout_mode = 2
+text = "Jugadores"
+horizontal_alignment = 1
+
+[node name="Label2" type="Label" parent="Contenedores/Botones"]
+layout_mode = 2
+text = "Gustos Jugador 1"
+horizontal_alignment = 1
+
+[node name="j1boxes" type="BoxContainer" parent="Contenedores/Botones"]
+layout_mode = 2
+alignment = 1
+
+[node name="j1g1" type="LineEdit" parent="Contenedores/Botones/j1boxes"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="j1g2" type="LineEdit" parent="Contenedores/Botones/j1boxes"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="j1g3" type="LineEdit" parent="Contenedores/Botones/j1boxes"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label3" type="Label" parent="Contenedores/Botones"]
+layout_mode = 2
+text = "Gustos Jugador 2"
+horizontal_alignment = 1
+
+[node name="j2boxes" type="BoxContainer" parent="Contenedores/Botones"]
+layout_mode = 2
+alignment = 1
+
+[node name="j2g1" type="LineEdit" parent="Contenedores/Botones/j2boxes"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="j2g2" type="LineEdit" parent="Contenedores/Botones/j2boxes"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="j2g3" type="LineEdit" parent="Contenedores/Botones/j2boxes"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label4" type="Label" parent="Contenedores/Botones"]
+layout_mode = 2
+text = "Variables del simulador"
+horizontal_alignment = 1
+
+[node name="SimVars" type="VBoxContainer" parent="Contenedores/Botones"]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Contenedores/Botones/SimVars"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Contenedores/Botones/SimVars/HBoxContainer"]
+layout_mode = 2
+text = "T"
+
+[node name="tvar" type="LineEdit" parent="Contenedores/Botones/SimVars/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="Contenedores/Botones/SimVars"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Contenedores/Botones/SimVars/HBoxContainer2"]
+layout_mode = 2
+text = "N"
+
+[node name="nvar" type="LineEdit" parent="Contenedores/Botones/SimVars/HBoxContainer2"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Button" type="Button" parent="Contenedores/Botones"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+text = "Empezar simulacion"
+
+[node name="MarginContainer" type="MarginContainer" parent="Contenedores/Botones"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="SimTorta" type="SimTorta" parent="."]
+
+[connection signal="pressed" from="Contenedores/Botones/Button" to="." method="_on_button_pressed"]
+[connection signal="mandar_output" from="SimTorta" to="." method="_on_sim_torta_mandar_output"]
