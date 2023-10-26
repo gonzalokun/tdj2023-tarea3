@@ -43,7 +43,10 @@ impl SimTorta {
         };
 
         // Juego las partidas y me guardo los datos
-        for _ in 0..n {
+        for i in 0..n {
+            
+            self.node.emit_signal("mandar_output".into(), &[Variant::from(format!("PARTIDA {:?}\n", i+1))]);
+            
             let res_partida: (f64, f64) = self.jugar_partida(t, &j1, &j2);
 
             let mut arr:VariantArray = VariantArray::new();
@@ -52,6 +55,8 @@ impl SimTorta {
 
             resultados.push(arr);
         }
+
+        self.node.emit_signal("mandar_output".into(), &[Variant::from(format!("----------\n"))]);
 
         resultados
     }
@@ -70,11 +75,6 @@ impl SimTorta {
             gusto2: g2, 
             gusto3: g3
         }
-    }
-
-    // TODO: COMPLETAR
-    fn armar_simulacion(tam_torta:u32, cant_partidas:u32, j1:&Jugador, j2:&Jugador) {
-        //
     }
 
     fn jugar_partida(&mut self, tam_torta:u32, j1:&Jugador, j2:&Jugador) -> (f64, f64) {
@@ -141,27 +141,27 @@ impl SimTorta {
 
     fn calcular_ganancia(&self, torta:&Vec<u8>, partes:&Vec<usize>, j:&Jugador) -> f64 {
         
-        let cant_1_total = cant_elemento(torta, 1u8);
+        let cant_1_total = cant_elemento(torta, 1u8) as f64;
         
-        let cant_2_total = cant_elemento(torta, 2u8);
+        let cant_2_total = cant_elemento(torta, 2u8) as f64;
         
-        let cant_3_total = cant_elemento(torta, 3u8);
+        let cant_3_total = cant_elemento(torta, 3u8) as f64;
         
         let pedazo_del_jugador:Vec<u8> = torta.iter().enumerate()
                                     .filter(|&(i, _)| partes.contains(&i))
                                     .map(|(_, e)| *e).collect();
         
-        let cant_1_jugador = cant_elemento(&pedazo_del_jugador, 1u8);
+        let cant_1_jugador = cant_elemento(&pedazo_del_jugador, 1u8) as f64;
         
-        let cant_2_jugador = cant_elemento(&pedazo_del_jugador, 2u8);
+        let cant_2_jugador = cant_elemento(&pedazo_del_jugador, 2u8) as f64;
         
-        let cant_3_jugador = cant_elemento(&pedazo_del_jugador, 3u8);
+        let cant_3_jugador = cant_elemento(&pedazo_del_jugador, 3u8) as f64;
 
         let mut ganancia:f64 = 0f64;
 
-        ganancia += if cant_1_total == 0 {0f64} else {(cant_1_jugador as f64 /cant_1_total as f64) * j.gustos(1u8)};
-        ganancia += if cant_2_total == 0 {0f64} else {(cant_2_jugador as f64 /cant_2_total as f64) * j.gustos(2u8)};
-        ganancia += if cant_3_total == 0 {0f64} else {(cant_3_jugador as f64 /cant_3_total as f64) * j.gustos(3u8)};
+        ganancia += if cant_1_total == 0.0 {0f64} else {(cant_1_jugador/cant_1_total) * j.gustos(1u8)};
+        ganancia += if cant_2_total == 0.0 {0f64} else {(cant_2_jugador/cant_2_total) * j.gustos(2u8)};
+        ganancia += if cant_3_total == 0.0 {0f64} else {(cant_3_jugador/cant_3_total) * j.gustos(3u8)};
 
         ganancia
     }

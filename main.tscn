@@ -118,7 +118,7 @@ layout_mode = 2
 
 [node name="Label" type="Label" parent="Contenedores/Botones/SimVars/HBoxContainer"]
 layout_mode = 2
-text = "T"
+text = "TAMAÑO TORTA"
 
 [node name="tvar" type="LineEdit" parent="Contenedores/Botones/SimVars/HBoxContainer"]
 layout_mode = 2
@@ -129,7 +129,7 @@ layout_mode = 2
 
 [node name="Label" type="Label" parent="Contenedores/Botones/SimVars/HBoxContainer2"]
 layout_mode = 2
-text = "N"
+text = "CANT PARTIDAS"
 
 [node name="nvar" type="LineEdit" parent="Contenedores/Botones/SimVars/HBoxContainer2"]
 layout_mode = 2
