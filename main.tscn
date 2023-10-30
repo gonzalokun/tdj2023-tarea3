@@ -48,9 +48,8 @@ size_flags_vertical = 3
 layout_mode = 2
 color = Color(0.203922, 0.2, 0.27451, 1)
 
-[node name="scrollLabel" type="Label" parent="Contenedores/TextoScroll/Scroller/MarginContainer"]
+[node name="scrollLabel" type="RichTextLabel" parent="Contenedores/TextoScroll/Scroller/MarginContainer"]
 layout_mode = 2
-size_flags_vertical = 1
 text = "aaaa"
 
 [node name="Botones" type="VBoxContainer" parent="Contenedores"]

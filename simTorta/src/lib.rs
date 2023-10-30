@@ -1,5 +1,8 @@
-use godot::prelude::*;
+use godot::{prelude::*};
 use rand::Rng;
+
+use std::hint::black_box;
+use godot::test::bench;
 
 struct SimTortaExtension;
 
@@ -49,16 +52,21 @@ impl SimTorta {
             
             let res_partida: (f64, f64) = self.jugar_partida(t, &j1, &j2);
 
-            let mut arr:VariantArray = VariantArray::new();
-            arr.push(res_partida.0.to_variant());
-            arr.push(res_partida.1.to_variant());
-
-            resultados.push(arr);
+            resultados.push(array![res_partida.0.to_variant(), res_partida.1.to_variant()]);
         }
 
         self.node.emit_signal("mandar_output".into(), &[Variant::from(format!("----------\n"))]);
 
         resultados
+    }
+
+    #[func]
+    fn testeo_prints(&mut self, n:u32) {
+
+        for i in 0..n {
+            self.node.emit_signal("mandar_output".into(), &[Variant::from(format!("TEST {:?}\n", i))]);
+        }
+
     }
 
     fn crear_jugador_con_gustos_uniformes() -> Jugador {
