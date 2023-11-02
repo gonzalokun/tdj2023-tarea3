@@ -1,9 +1,6 @@
 use godot::{prelude::*};
 use rand::Rng;
 
-use std::hint::black_box;
-use godot::test::bench;
-
 struct SimTortaExtension;
 
 #[gdextension]
@@ -60,6 +57,7 @@ impl SimTorta {
         resultados
     }
 
+    //*
     #[func]
     fn testeo_prints(&mut self, n:u32) {
 
@@ -68,22 +66,7 @@ impl SimTorta {
         }
 
     }
-
-    fn crear_jugador_con_gustos_uniformes() -> Jugador {
-        Jugador { 
-            gusto1: 1f64/3f64, 
-            gusto2: 1f64/3f64, 
-            gusto3: 1f64/3f64
-        }
-    }
-    
-    fn crear_jugador_con_gustos(g1:f64, g2:f64, g3:f64) -> Jugador {
-        Jugador { 
-            gusto1: g1, 
-            gusto2: g2, 
-            gusto3: g3
-        }
-    }
+    //*/
 
     fn jugar_partida(&mut self, tam_torta:u32, j1:&Jugador, j2:&Jugador) -> (f64, f64) {
         let torta = self.crear_torta(tam_torta);
@@ -91,7 +74,7 @@ impl SimTorta {
         // print!("La torta creada es: {:?}\n", &torta);
         self.node.emit_signal("mandar_output".into(), &[Variant::from(format!("La torta creada es: {:?}\n", &torta))]);
 
-        let corte = self.realizar_corte(&torta, j1);
+        let corte = self.realizar_corte(&torta, j1, j2);
 
         // print!("La porcion cortada es: {:?}\n", &corte);
         self.node.emit_signal("mandar_output".into(), &[Variant::from(format!("La porcion cortada es: {:?}\n", &corte))]);
@@ -118,13 +101,81 @@ impl SimTorta {
 
     // Decide un par de indices de acuerdo a los gustos de un jugador
     // Retorna los indices que corresponden al corte hecho por el jugador
-    fn realizar_corte(&self, torta:&Vec<u8>, j:&Jugador) -> (usize, usize) {
-        self.corte_a_la_mitad(torta)
+    fn realizar_corte(&self, torta:&Vec<u8>, j1:&Jugador, j2:&Jugador) -> (usize, usize) {
+        self.mejor_corte_contemplando_dos_jugadores(torta, j1, j2)
     }
 
     // Corte para probar las otras funciones, no toma en cuenta los gustos de los jugadores
     fn corte_a_la_mitad(&self, torta:&Vec<u8>) -> (usize, usize) {
         (0, torta.len()/2)
+    }
+
+    // Realiza el corte en base a los gustos del jugador 1, contemplando los gustos del jugador 2
+    fn mejor_corte_contemplando_dos_jugadores(&self, torta:&Vec<u8>, j1:&Jugador, j2:&Jugador) -> (usize, usize) {
+        
+        let tam_torta = torta.len();
+        
+        let matriz_ganancias_j1 = self.generar_matriz_ganancias_de_jugador(torta, j1);
+        let matriz_ganancias_j2 = self.generar_matriz_ganancias_de_jugador(torta, j2);
+
+        println!("Matriz 1: {:?}", matriz_ganancias_j1);
+        println!("Matriz 2: {:?}", matriz_ganancias_j2);
+
+        let mut mejor_indice: (usize, usize) = (0, 1);
+        let mut mejor_ganancia = matriz_ganancias_j1[0][0];
+
+        for fila in 0..tam_torta {
+            for col in fila..tam_torta {
+                
+                if matriz_ganancias_j1[fila][col] >= mejor_ganancia && 1.0 - matriz_ganancias_j2[fila][col] >= 0.5 {
+                    mejor_ganancia = matriz_ganancias_j1[fila][col];
+                    mejor_indice = (fila, col+1);
+                }
+
+            }
+        }
+
+        println!("Mejor indice: {:?}", mejor_indice);
+        println!("Mejor ganancia: {:?}", mejor_ganancia);
+
+        mejor_indice
+    }
+
+    fn generar_matriz_ganancias_de_jugador(&self, torta:&Vec<u8>, jug:&Jugador) -> Vec<Vec<f64>> {
+        let tam_torta = torta.len();
+
+        let mut tabla = vec![vec![-1.0; tam_torta]; tam_torta];
+
+        let cant_1 = cant_elemento(torta, 1u8) as f64;
+        let cant_2 = cant_elemento(torta, 2u8) as f64;
+        let cant_3 = cant_elemento(torta, 3u8) as f64;
+
+        let proporciones = |x| {
+            match x {
+                1u8 => 1.0/cant_1,
+                2u8 => 1.0/cant_2, 
+                3u8 => 1.0/cant_3,
+                _ => 0.0
+            }
+        };
+
+        for fila in 0..tam_torta {
+            for col in fila..tam_torta {
+
+               // Caso base, la diagonal 
+                if col == fila {
+                    tabla[fila][col] = proporciones(torta[col]) * jug.gustos(torta[col]);
+                }
+                else {
+                    // Caso inductivo
+                    tabla[fila][col] = tabla[fila][col-1] + proporciones(torta[col]) * jug.gustos(torta[col]);
+                }
+
+            }
+        }
+
+        tabla
+
     }
 
     // Elije un trozo de la torta en base a los gustos del jugador
