@@ -134,6 +134,14 @@ text = "CANT PARTIDAS"
 layout_mode = 2
 size_flags_horizontal = 3
 
+[node name="infoPerf" type="CheckBox" parent="Contenedores/Botones"]
+layout_mode = 2
+text = "Info. perfecta para corte"
+
+[node name="j2m" type="CheckBox" parent="Contenedores/Botones"]
+layout_mode = 2
+text = "Jug 2 Malvado"
+
 [node name="Button" type="Button" parent="Contenedores/Botones"]
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2

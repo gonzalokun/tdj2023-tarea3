@@ -24,11 +24,12 @@ impl NodeVirtual for SimTorta {
 impl SimTorta {
     #[signal]
     fn mandar_output(output:String);
-
+ 
     #[func]
-    fn empezar_simulacion(&mut self, gustos1:Array<f64>, gustos2:Array<f64>, t:u32, n:u32) -> Array<VariantArray> {
+    fn empezar_simulacion(&mut self, gustos1:Array<f64>, gustos2:Array<f64>, t:u32, n:u32, info_perf_corte:bool, j2_malvado:bool) -> Array<VariantArray> {
 
         let mut resultados = Array::<VariantArray>::new();
+        let mut ganancias = (0.0, 0.0);
 
         let j1 = Jugador { 
             gusto1: gustos1.get(0), 
@@ -47,13 +48,16 @@ impl SimTorta {
             
             self.node.emit_signal("mandar_output".into(), &[Variant::from(format!("PARTIDA {:?}\n", i+1))]);
             
-            let res_partida: (f64, f64) = self.jugar_partida(t, &j1, &j2);
+            let res_partida: (f64, f64) = self.jugar_partida(t, &j1, &j2, info_perf_corte, j2_malvado);
+            ganancias = (ganancias.0 + res_partida.0, ganancias.1 + res_partida.1);
 
             resultados.push(array![res_partida.0.to_variant(), res_partida.1.to_variant()]);
         }
 
-        self.node.emit_signal("mandar_output".into(), &[Variant::from(format!("----------\n"))]);
-
+        self.node.emit_signal("mandar_output".into(), &[Variant::from("----------\n")]);
+        self.node.emit_signal("mandar_output".into(), &[Variant::from(format!("TOTAL GANANCIA JUG 1: {:?}\n", ganancias.0))]);
+        self.node.emit_signal("mandar_output".into(), &[Variant::from(format!("TOTAL GANANCIA JUG 2: {:?}\n", ganancias.1))]);
+        
         resultados
     }
 
@@ -68,18 +72,22 @@ impl SimTorta {
     }
     //*/
 
-    fn jugar_partida(&mut self, tam_torta:u32, j1:&Jugador, j2:&Jugador) -> (f64, f64) {
+    fn jugar_partida(&mut self, tam_torta:u32, j1:&Jugador, j2:&Jugador, info_perf_corte:bool, j2_malvado:bool) -> (f64, f64) {
         let torta = self.crear_torta(tam_torta);
 
         // print!("La torta creada es: {:?}\n", &torta);
         self.node.emit_signal("mandar_output".into(), &[Variant::from(format!("La torta creada es: {:?}\n", &torta))]);
 
-        let corte = self.realizar_corte(&torta, j1, j2);
+        let corte = self.realizar_corte(&torta, j1, j2, info_perf_corte);
 
         // print!("La porcion cortada es: {:?}\n", &corte);
         self.node.emit_signal("mandar_output".into(), &[Variant::from(format!("La porcion cortada es: {:?}\n", &corte))]);
 
-        let trozos_elegidos = self.elegir_trozos(&torta, corte, j2);
+        let trozos_elegidos = if j2_malvado {
+            self.elegir_trozos(&torta, corte, j1)
+        } else {
+            self.elegir_trozos(&torta, corte, j2)
+        };
 
         // print!("Trozos elegidos: {:?}\n", &trozos_elegidos);
         self.node.emit_signal("mandar_output".into(), &[Variant::from(format!("Trozos elegidos: {:?}\n", &trozos_elegidos))]);
@@ -101,8 +109,13 @@ impl SimTorta {
 
     // Decide un par de indices de acuerdo a los gustos de un jugador
     // Retorna los indices que corresponden al corte hecho por el jugador
-    fn realizar_corte(&self, torta:&Vec<u8>, j1:&Jugador, j2:&Jugador) -> (usize, usize) {
-        self.mejor_corte_contemplando_dos_jugadores(torta, j1, j2)
+    fn realizar_corte(&self, torta:&Vec<u8>, j1:&Jugador, j2:&Jugador, info_perf:bool) -> (usize, usize) {
+        if info_perf {
+            self.mejor_corte_contemplando_dos_jugadores(torta, j1, j2)
+        }
+        else {
+            self.mejor_corte_contemplando_un_jugador(torta, j1)
+        }
     }
 
     // Corte para probar las otras funciones, no toma en cuenta los gustos de los jugadores
@@ -113,6 +126,8 @@ impl SimTorta {
     // Realiza el corte en base a los gustos del jugador 1, contemplando los gustos del jugador 2
     fn mejor_corte_contemplando_dos_jugadores(&self, torta:&Vec<u8>, j1:&Jugador, j2:&Jugador) -> (usize, usize) {
         
+        println!("CORTE CON INFO PERF");
+
         let tam_torta = torta.len();
         
         let matriz_ganancias_j1 = self.generar_matriz_ganancias_de_jugador(torta, j1);
@@ -128,6 +143,44 @@ impl SimTorta {
             for col in fila..tam_torta {
                 
                 if matriz_ganancias_j1[fila][col] >= mejor_ganancia && 1.0 - matriz_ganancias_j2[fila][col] >= 0.5 {
+                    mejor_ganancia = matriz_ganancias_j1[fila][col];
+                    mejor_indice = (fila, col+1);
+                }
+                else if 1.0 - matriz_ganancias_j1[fila][col] >= mejor_ganancia && matriz_ganancias_j2[fila][col] >= 0.5 {
+                    mejor_ganancia = matriz_ganancias_j1[fila][col];
+                    mejor_indice = (fila, col+1);
+                }
+
+            }
+        }
+
+        println!("Mejor indice: {:?}", mejor_indice);
+        println!("Mejor ganancia: {:?}", mejor_ganancia);
+
+        mejor_indice
+    }
+    
+    fn mejor_corte_contemplando_un_jugador(&self, torta:&Vec<u8>, j1:&Jugador) -> (usize, usize) {
+        
+        println!("CORTE SIN INFO PERF");
+        
+        let tam_torta = torta.len();
+        
+        let matriz_ganancias_j1 = self.generar_matriz_ganancias_de_jugador(torta, j1);
+
+        println!("Matriz 1: {:?}", matriz_ganancias_j1);
+
+        let mut mejor_indice: (usize, usize) = (0, 1);
+        let mut mejor_ganancia = matriz_ganancias_j1[0][0];
+
+        for fila in 0..tam_torta {
+            for col in fila..tam_torta {
+                
+                if matriz_ganancias_j1[fila][col] >= mejor_ganancia && 1.0 - matriz_ganancias_j1[fila][col] >= 0.5 {
+                    mejor_ganancia = matriz_ganancias_j1[fila][col];
+                    mejor_indice = (fila, col+1);
+                }
+                else if 1.0 - matriz_ganancias_j1[fila][col] >= mejor_ganancia && matriz_ganancias_j1[fila][col] >= 0.5 {
                     mejor_ganancia = matriz_ganancias_j1[fila][col];
                     mejor_indice = (fila, col+1);
                 }

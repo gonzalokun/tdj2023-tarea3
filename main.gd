@@ -7,6 +7,8 @@ extends Control
 @onready var j2_gustos = find_child("j2boxes").get_children()
 @onready var tvar = find_child("tvar")
 @onready var nvar = find_child("nvar")
+@onready var infoPerf = find_child("infoPerf") as CheckBox
+@onready var j2m = find_child("j2m") as CheckBox
 
 @onready var sim = find_child("SimTorta")
 
@@ -35,7 +37,7 @@ func _on_button_pressed():
 	
 	scroll_label.clear()
 	
-	var res = sim.empezar_simulacion(gustos1, gustos2, t, n)
+	var res = sim.empezar_simulacion(gustos1, gustos2, t, n, infoPerf.button_pressed, j2m.button_pressed)
 	
 	# sim.testeo_prints(n)
 	
