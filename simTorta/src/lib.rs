@@ -51,7 +51,7 @@ impl SimTorta {
             let res_partida: (f64, f64) = self.jugar_partida(t, &j1, &j2, info_perf_corte, j2_malvado);
             ganancias = (ganancias.0 + res_partida.0, ganancias.1 + res_partida.1);
 
-            resultados.push(array![res_partida.0.to_variant(), res_partida.1.to_variant()]);
+            resultados.push(array![res_partida.0.to_variant(), res_partida.1.to_variant(), ganancias.0.to_variant(), ganancias.1.to_variant()]);
         }
 
         self.node.emit_signal("mandar_output".into(), &[Variant::from("----------\n")]);

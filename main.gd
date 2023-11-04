@@ -42,6 +42,8 @@ func _on_button_pressed():
 	# sim.testeo_prints(n)
 	
 	# print("Resultados: ", res)
+	
+	escribir_output(res)
 
 func controlar_gustos(gustos):
 	pass
@@ -49,3 +51,18 @@ func controlar_gustos(gustos):
 func _on_sim_torta_mandar_output(output):
 	scroll_label.add_text(output)
 	scroller.scroll_vertical = scroller.get_v_scroll_bar().max_value
+
+func escribir_output(data):
+	
+	var nombre_ar:String = "data/"+ nvar.text + "_" + tvar.text + "_" + str(Time.get_ticks_msec()) + ".csv"
+	var archivo_out = FileAccess.open(nombre_ar, FileAccess.WRITE)
+	
+	archivo_out.store_string("n,t,res_j1,res_j2,ganancia_j1,ganancia_j2\n")
+	
+	for item in data:
+		archivo_out.store_string(nvar.text + "," 
+		+ tvar.text + "," + str(item[0]) + ","
+		+ str(item[1]) + "," + str(item[2]) + ","
+		+ str(item[3]) + "\n")
+	
+	archivo_out.close()
