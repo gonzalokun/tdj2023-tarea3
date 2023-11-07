@@ -24,7 +24,8 @@ impl NodeVirtual for SimTorta {
 impl SimTorta {
     #[signal]
     fn mandar_output(output:String);
- 
+
+    // Función que realiza todas las partidas con los parametros ingresados
     #[func]
     fn empezar_simulacion(&mut self, gustos1:Array<f64>, gustos2:Array<f64>, t:u32, n:u32, info_perf_corte:bool, j2_malvado:bool) -> Array<VariantArray> {
 
@@ -61,26 +62,14 @@ impl SimTorta {
         resultados
     }
 
-    //*
-    #[func]
-    fn testeo_prints(&mut self, n:u32) {
-
-        for i in 0..n {
-            self.node.emit_signal("mandar_output".into(), &[Variant::from(format!("TEST {:?}\n", i))]);
-        }
-
-    }
-    //*/
-
+    // Función que simula una partida con los parametros ingresados
     fn jugar_partida(&mut self, tam_torta:u32, j1:&Jugador, j2:&Jugador, info_perf_corte:bool, j2_malvado:bool) -> (f64, f64) {
         let torta = self.crear_torta(tam_torta);
 
-        // print!("La torta creada es: {:?}\n", &torta);
         self.node.emit_signal("mandar_output".into(), &[Variant::from(format!("La torta creada es: {:?}\n", &torta))]);
 
         let corte = self.realizar_corte(&torta, j1, j2, info_perf_corte);
 
-        // print!("La porcion cortada es: {:?}\n", &corte);
         self.node.emit_signal("mandar_output".into(), &[Variant::from(format!("La porcion cortada es: {:?}\n", &corte))]);
 
         let trozos_elegidos = if j2_malvado {
@@ -89,7 +78,6 @@ impl SimTorta {
             self.elegir_trozos(&torta, corte, j2)
         };
 
-        // print!("Trozos elegidos: {:?}\n", &trozos_elegidos);
         self.node.emit_signal("mandar_output".into(), &[Variant::from(format!("Trozos elegidos: {:?}\n", &trozos_elegidos))]);
 
         let ganancia1:f64 = self.calcular_ganancia(&torta, &trozos_elegidos.0, j1);
@@ -142,10 +130,12 @@ impl SimTorta {
         for fila in 0..tam_torta {
             for col in fila..tam_torta {
                 
+                // Si el corte mejora la ganancia y puedo asegurar que el segundo no lo elije lo agarro
                 if matriz_ganancias_j1[fila][col] >= mejor_ganancia && 1.0 - matriz_ganancias_j2[fila][col] >= 0.5 {
                     mejor_ganancia = matriz_ganancias_j1[fila][col];
                     mejor_indice = (fila, col+1);
                 }
+                // Lo mismo para el otro pedazo generado para el corte
                 else if 1.0 - matriz_ganancias_j1[fila][col] >= mejor_ganancia && matriz_ganancias_j2[fila][col] >= 0.5 {
                     mejor_ganancia = matriz_ganancias_j1[fila][col];
                     mejor_indice = (fila, col+1);
@@ -176,10 +166,12 @@ impl SimTorta {
         for fila in 0..tam_torta {
             for col in fila..tam_torta {
                 
+                // Si el corte actual genera mejor ganancia y el pedazo restante asegura cierto nivel de ganancia lo tomo
                 if matriz_ganancias_j1[fila][col] >= mejor_ganancia && 1.0 - matriz_ganancias_j1[fila][col] >= 0.5 {
                     mejor_ganancia = matriz_ganancias_j1[fila][col];
                     mejor_indice = (fila, col+1);
                 }
+                // Lo mismo para el corte opuesto
                 else if 1.0 - matriz_ganancias_j1[fila][col] >= mejor_ganancia && matriz_ganancias_j1[fila][col] >= 0.5 {
                     mejor_ganancia = matriz_ganancias_j1[fila][col];
                     mejor_indice = (fila, col+1);
@@ -194,6 +186,7 @@ impl SimTorta {
         mejor_indice
     }
 
+    // Calcula la matriz de ganancia del jugador pasado por parámetro
     fn generar_matriz_ganancias_de_jugador(&self, torta:&Vec<u8>, jug:&Jugador) -> Vec<Vec<f64>> {
         let tam_torta = torta.len();
 
@@ -203,6 +196,7 @@ impl SimTorta {
         let cant_2 = cant_elemento(torta, 2u8) as f64;
         let cant_3 = cant_elemento(torta, 3u8) as f64;
 
+        // Las ganancias se multiplican por la proporción de elementos para garantizar que la torta da ganancia 1
         let proporciones = |x| {
             match x {
                 1u8 => 1.0/cant_1,
@@ -232,8 +226,8 @@ impl SimTorta {
     }
 
     // Elije un trozo de la torta en base a los gustos del jugador
-    // Retorna vectores con los indices de los objetos de la torta que corresponden a cada corte
-    // y el indice elegido por el jugador
+    // Retorna un par de vectores con los indices de los objetos de la torta que corresponden a cada corte
+    // ordenados por jugador (el primero corresponde a j1 y el segundo a j2)
     fn elegir_trozos(&self, torta:&Vec<u8>, corte:(usize, usize) , j:&Jugador) -> (Vec<usize>, Vec<usize>) {
         let rango = corte.0 .. corte.1;
 
@@ -251,6 +245,7 @@ impl SimTorta {
         }
     }
 
+    // Calcula la ganancia de un corte para un jugador
     fn calcular_ganancia(&self, torta:&Vec<u8>, partes:&Vec<usize>, j:&Jugador) -> f64 {
         
         let cant_1_total = cant_elemento(torta, 1u8) as f64;
@@ -278,8 +273,6 @@ impl SimTorta {
         ganancia
     }
 }
-
-//
 
 struct Jugador {
     gusto1: f64,

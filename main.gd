@@ -27,10 +27,13 @@ func _on_button_pressed():
 	var n:int = int(nvar.text)
 	
 	for g in j1_gustos:
-		gustos1.append(float(g.text))
+		gustos1.append(abs(float(g.text)))
 		
 	for g in j2_gustos:
-		gustos2.append(float(g.text))
+		gustos2.append(abs(float(g.text)))
+	
+	gustos1 = normalizar_gustos(gustos1)
+	gustos2 = normalizar_gustos(gustos2)
 	
 	print("gustos j1: ", gustos1)
 	print("gustos j2: ", gustos2)
@@ -39,14 +42,20 @@ func _on_button_pressed():
 	
 	var res = sim.empezar_simulacion(gustos1, gustos2, t, n, infoPerf.button_pressed, j2m.button_pressed)
 	
-	# sim.testeo_prints(n)
-	
-	# print("Resultados: ", res)
-	
 	escribir_output(res)
 
-func controlar_gustos(gustos):
-	pass
+func normalizar_gustos(gustos:Array[float]) -> Array[float]:
+	var total:float = 0
+	var res:Array[float] = []
+	
+	for i in gustos:
+		total += i
+	
+	if total == 0:
+		return gustos
+	
+	res.assign(gustos.map(func (x): return x/total))
+	return res
 
 func _on_sim_torta_mandar_output(output):
 	scroll_label.add_text(output)
